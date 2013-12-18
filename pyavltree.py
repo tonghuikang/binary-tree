@@ -19,15 +19,19 @@ class Node():
         return self.height == 0
 
     def max_child_height(self):
-        """ Return Max Child Height or -1 if No Children
+        """ Return Height Of Tallest Child or -1 if No Children
         """
         if self.left_child and self.right_child:
+            # two children
             return max(self.left_child.height, self.right_child.height)
         elif self.left_child and not self.right_child:
+            # one child, on left
             return self.left_child.height
         elif not self.left_child and self.right_child:
+            # one child, on right
             return self.right_child.height
         else:
+            # no Children
             return -1
 
     def weigh(self):
@@ -86,14 +90,32 @@ class Node():
 
         return top
 
+    def max(self):
+        """ Finds the largest descendant of this Node
+        """
+        node = self
+        while node.right_child:
+            node = node.right_child
+        return node
 
-def update_node_height(node):
-    changed = True
-    while node and changed:
-        old_height = node.height
-        node.height = (node.max_child_height() + 1 if (node.right_child or node.left_child) else 0)
-        changed = node.height != old_height
-        node = node.parent
+    def min(self):
+        """ Finds the smallest descendant of this Node
+        """
+        node = self
+        while node.left_child:
+            node = node.left_child
+        return node
+
+    def update_height(self):
+        """ Updates Height of This Node and All Ancestor Nodes, As Necessary
+        """
+        node = self
+        changed = True
+        while node and changed:
+            old_height = node.height
+            node.height = node.max_child_height() + 1
+            changed = node.height != old_height
+            node = node.parent
 
 
 class AVLTree():
@@ -118,41 +140,35 @@ class AVLTree():
     def balance(self, node):
         """ Perform balancing Operation
         """
-        top = node.parent  # allowed to be NULL
         while node.weigh() < -1 or node.weigh() > 1:
             if node.weigh() == -2:
                 # right side heavy
 
                 if node.right_child.weigh() < 0:
                     # right-side left-side heavy
+                    old_right_child = node.right_child
                     node.right_child = node.right_child.rotate_left()
-                    self.recompute_heights(node.right_child)
+                    old_right_child.update_height()
 
                 # right-side right-side heavy
                 new_top = node.rotate_right()
                 if new_top.parent is None:
-                    self.root_node = node
-                self.recompute_heights(new_top)
+                    self.root = node
+                node.update_height()
             else:
                 # left side heavy
 
                 if node.left_child.weigh() > 0:
                     # left-side right-side heavy
+                    old_left_child = node.left_child
                     node.left_child = node.left_child.rotate_right()
-                    self.recompute_heights(node.left_child)
+                    old_left_child.update_height()
 
                 # left-side left-side heavy
                 new_top = node.rotate_left()
                 if new_top.parent is None:
-                    self.root_node = node
-                self.recompute_heights(new_top)
-
-
-    def rotate_right(self):
-        pass
-
-    def rotate_left(self):
-        pass
+                    self.root = node
+                node.update_height()
 
     def sanity_check(self, *args):
         if len(args) == 0:
@@ -189,7 +205,6 @@ class AVLTree():
                 if not (node.right_child.key >= node.key):
                     raise Exception("Key of right child of node " + str(node) + " is less than key of his parent!")
                 self.sanity_check(node.right_child)
-
 
     def add_as_child(self, parent_node, child_node):
         node_to_rebalance = None
@@ -234,19 +249,7 @@ class AVLTree():
                 self.element_count += 1
                 self.add_as_child(self.root, new_node)
 
-    @staticmethod
-    def find_biggest(start_node):
-        node = start_node
-        while node.right_child:
-            node = node.right_child
-        return node
 
-    @staticmethod
-    def find_smallest(start_node):
-        node = start_node
-        while node.left_child:
-            node = node.left_child
-        return node
 
     def inorder_non_recursive(self):
         node = self.root
@@ -354,7 +357,7 @@ class AVLTree():
             else:
                 assert (parent.right_child == node)
                 parent.right_child = None
-            self.recompute_heights(parent)
+            parent.update_height()
         else:
             self.root = None
         del node
@@ -378,7 +381,7 @@ class AVLTree():
             else:
                 assert node.right_child
                 node.right_child.parent = parent
-            self.recompute_heights(parent)
+            parent.update_height()
         del node
         # rebalance
         node = parent
