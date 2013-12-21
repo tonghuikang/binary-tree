@@ -21,6 +21,6 @@ New tree
 
 Insert Entity into the tree
 
-`tree.insert(5, uuid.uuid4())`
+`tree.insert(5, "apple")`
 
 [AVL Trees]: http://en.wikipedia.org/wiki/AVL_tree
