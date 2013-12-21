@@ -1,8 +1,7 @@
-Copyright (c) 2010 Pavel Grafov
-
 Implementation of AVL trees (http://en.wikipedia.org/wiki/AVL_tree) in Python.
 Class AVL Tree supports the following functionality:
  - insertion of a new entry in the tree;
+ - allows duplicate value entries (requires a uuid for each element)
  - removal of any entry in the tree;
  - search for any entry in the tree;
  - "sanity check" for the tree (described later);
@@ -12,7 +11,7 @@ Class AVL Tree supports the following functionality:
     - postorder,
     - inorder non-recursive.
  
-I would like to mention some sources, that helped me a lot while working on this code:
+Additional Info on AVL Trees:
 1) Wikipedia
 1a) http://en.wikipedia.org/wiki/AVL_tree 
     Description of AVL trees.
@@ -29,6 +28,7 @@ I would like to mention some sources, that helped me a lot while working on this
    From this page I borrowed the idea how to correctly delete an entry
    from an AVL tree.
 
+
 This code is available under MIT License.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -37,6 +37,8 @@ in the Software without restriction, including without limitation the rights
 to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 copies of the Software, and to permit persons to whom the Software is
 furnished to do so, subject to the following conditions:
+
+Copyright (c) 2010 Pavel Grafov
 
 The above copyright notice and this permission notice shall be included in
 all copies or substantial portions of the Software.
