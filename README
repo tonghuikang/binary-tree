@@ -1,4 +1,4 @@
-Implementation of AVL trees (http://en.wikipedia.org/wiki/AVL_tree) in Python.
+Implementation of <a href="http://en.wikipedia.org/wiki/AVL_tree">AVL Trees</a> in Python.
 Class AVL Tree supports the following functionality:
  - insertion of a new entry in the tree;
  - allows duplicate value entries (requires a uuid for each element)
