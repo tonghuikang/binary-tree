@@ -15,7 +15,7 @@ What Problem This Solves
     - inorder,
     - postorder,
     - inorder non-recursive.
-    - 
+
 How This Solves It
 ------------------
 
