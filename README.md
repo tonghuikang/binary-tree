@@ -7,7 +7,7 @@ What Problem This Solves
 ------------------------
 * Fast insertion
 * Fast retrieval
-* Fast removal
+* Fast deletion
 * Objects with duplicate values may be added
 
 How This Solves It
