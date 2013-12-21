@@ -3,33 +3,35 @@ import math
 
 
 class NodeKey():
-    def __init__(self, uuid, value):
-        self.uuid = uuid
+    def __init__(self, value, name=None):
+        self.name = name
         self.value = value
 
-    def __cmp__(self, other):
-        """Return a negative integer if self < other, zero if self == other, a positive integer if self > other.
-        """
-        if self.value < other.value:
-            return -1
-        elif self.value > other.value:
-            return 1
+    def __lt__(self, other):
+        return self.value < other.value or (self.value == other.value and self.name < other.name)
 
-        # values are equal, compare uuid
-        if self.uuid < other.uuid:
-            return -1
-        elif self.uuid > other.uuid:
-            return 1
+    def __le__(self, other):
+        return self < other or self == other
 
-        return 0
+    def __eq__(self, other):
+        return self.value == other.value and self.name == other.name
+
+    def __ne__(self, other):
+        return self.value != other.value or self.name != other.name
+
+    def __gt__(self, other):
+        return self.value > other.value or (self.value == other.value and self.name > other.name)
+
+    def __ge__(self, other):
+        return self > other or self == other
 
     def __str__(self):
-        return str(self.value) + " // " + self.uuid
+        return str(self.value) + " // " + str(self.name)
 
 
 class Node():
-    def __init__(self, uuid, value):
-        self.key = NodeKey(uuid, value)
+    def __init__(self, value, name=None):
+        self.key = NodeKey(value, name)
         self.value = value
         self.parent = None
         self.left_child = None
@@ -245,16 +247,15 @@ class AVLTree():
                     self.root = new_node
                 node.update_height()
 
-    def insert(self, key):
-        new_node = Node(key)
+    def insert(self, value, name=None):
         if self.root is None:
             # If nothing in tree
-            self.root = new_node
+            self.root = Node(value, name)
         else:
-            if self.find(key) is None:
+            if self.find(value, name) is None:
                 # If key doesn't exist in tree
                 self.element_count += 1
-                self.add_as_child(self.root, new_node)
+                self.add_as_child(self.root, Node(value, name))
 
     def add_as_child(self, parent_node, child_node):
         node_to_rebalance = None
@@ -300,7 +301,10 @@ class AVLTree():
         while node.left_child:
             node = node.left_child
         while node:
-            retlst += [node.key]
+            if node.key.name is not None:
+                retlst.append([node.key.value, node.key.name])
+            else:
+                retlst.append(node.key.value)
             if node.right_child:
                 node = node.right_child
                 while node.left_child:
@@ -314,7 +318,10 @@ class AVLTree():
     def preorder(self, node, retlst=None):
         if retlst is None:
             retlst = []
-        retlst += [node.key]
+        if node.key.name is not None:
+            retlst.append([node.key.value, node.key.name])
+        else:
+            retlst.append(node.key.value)
         if node.left_child:
             retlst = self.preorder(node.left_child, retlst)
         if node.right_child:
@@ -326,7 +333,10 @@ class AVLTree():
             retlst = []
         if node.left_child:
             retlst = self.inorder(node.left_child, retlst)
-        retlst += [node.key]
+        if node.key.name is not None:
+            retlst.append([node.key.value, node.key.name])
+        else:
+            retlst.append(node.key.value)
         if node.right_child:
             retlst = self.inorder(node.right_child, retlst)
         return retlst
@@ -338,7 +348,10 @@ class AVLTree():
             retlst = self.postorder(node.left_child, retlst)
         if node.right_child:
             retlst = self.postorder(node.right_child, retlst)
-        retlst += [node.key]
+        if node.key.name is not None:
+            retlst.append([node.key.value, node.key.name])
+        else:
+            retlst.append(node.key.value)
         return retlst
 
     def as_list(self, pre_in_post):
@@ -353,16 +366,16 @@ class AVLTree():
         elif pre_in_post == 3:
             return self.inorder_non_recursive()
 
-    def find(self, key):
-        return self.find_in_subtree(self.root, key)
+    def find(self, value, name=None):
+        return self.find_in_subtree(self.root, NodeKey(value, name))
 
-    def find_in_subtree(self, node, key):
+    def find_in_subtree(self, node, node_key):
         if node is None:
             return None  # key not found
-        if key < node.key:
-            return self.find_in_subtree(node.left_child, key)
-        elif key > node.key:
-            return self.find_in_subtree(node.right_child, key)
+        if node_key < node.key:
+            return self.find_in_subtree(node.left_child, node_key)
+        elif node_key > node.key:
+            return self.find_in_subtree(node.right_child, node_key)
         else:  # key is equal to node key
             return node
 
