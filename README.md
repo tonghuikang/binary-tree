@@ -6,7 +6,7 @@ Implementation of [AVL Trees] in Python.
 What Problem This Solves
 ------------------------
 * Fast insertion
-* Fast retreival
+* Fast retrieval
 * Fast removal
 * Objects with duplicate values may be added
 
