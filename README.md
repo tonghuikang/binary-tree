@@ -1,3 +1,6 @@
+Python-AVL-Tree
+=============
+
 Implementation of [AVL Trees] in Python.
 Class AVL Tree supports the following functionality:
  - insertion of a new entry in the tree;
