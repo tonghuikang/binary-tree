@@ -21,6 +21,6 @@ New tree
 
 Insert Entity into the tree
 
-`tree.insert(5, "apple")`
+`tree.insert(5, "[optional ID, perhaps database key]")`
 
 [AVL Trees]: http://en.wikipedia.org/wiki/AVL_tree
