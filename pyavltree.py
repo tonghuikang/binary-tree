@@ -2,9 +2,35 @@ import random
 import math
 
 
+class NodeKey():
+    def __init__(self, uuid, value):
+        self.uuid = uuid
+        self.value = value
+
+    def __cmp__(self, other):
+        """Return a negative integer if self < other, zero if self == other, a positive integer if self > other.
+        """
+        if self.value < other.value:
+            return -1
+        elif self.value > other.value:
+            return 1
+
+        # values are equal, compare uuid
+        if self.uuid < other.uuid:
+            return -1
+        elif self.uuid > other.uuid:
+            return 1
+
+        return 0
+
+    def __str__(self):
+        return str(self.value) + " // " + self.uuid
+
+
 class Node():
-    def __init__(self, key):
-        self.key = key
+    def __init__(self, uuid, value):
+        self.key = NodeKey(uuid, value)
+        self.value = value
         self.parent = None
         self.left_child = None
         self.right_child = None
@@ -91,28 +117,27 @@ class Node():
 
     def rotate_left(self):
         # assign variables
-        to_demote = self  # K: 59 H: 2 P: 93 L: 28 R: None
-        top = to_demote.parent  # K: 93 H: 3 P: None L: 59 R: 94
-        to_promote = to_demote.left_child  # K: 28 H: 1 P: 59 L: None R: 49
-        swapper = to_promote.right_child  # K: 49 H: 0 P: 28 L: None R: None
+        to_demote = self
+        top = to_demote.parent
+        to_promote = to_demote.left_child
+        swapper = to_promote.right_child
 
         # swap children
-        to_promote.right_child = to_demote  # K: 28 H: 1 P: 59 L: None R: 59
-        to_demote.left_child = swapper  # K: 59 H: 2 P: 93 L: 49 R: None
+        to_promote.right_child = to_demote
+        to_demote.left_child = swapper
 
         # re-assign parents
-        to_promote.parent = top  # K: 28 H: 1 P: 93 L: None R: 59
-        to_demote.parent = to_promote  # K: 59 H: 2 P: 28 L: 49 R: None
+        to_promote.parent = top
+        to_demote.parent = to_promote
         if swapper is not None:
-            swapper.parent = to_demote  # K: 49 H: 0 P: 59 L: None R: None
+            swapper.parent = to_demote
 
         if top is not None:
             if top.right_child == to_demote:
                 top.right_child = to_promote
             elif top.left_child == to_demote:
-                top.left_child = to_promote  # K: 93 H: 3 P: None L: 28 R: 94
-
-        return to_promote  # K: 93 H: 3 P: None L: 28 R: 94
+                top.left_child = to_promote
+        return to_promote
 
     def max(self):
         """ Finds the largest descendant of this Node
@@ -142,6 +167,9 @@ class Node():
             node = node.parent
 
     def out(self):
+        """ Return String Representing Tree From Current Node Down
+        Only Works for Small Trees
+        """
         start_node = self
         space_symbol = "*"
         spaces_count = 250
@@ -165,9 +193,12 @@ class Node():
 
 
 class AVLTree():
+    """ Binary Search Tree
+    """
     def __init__(self, *args):
         self.root = None  # root Node
         self.element_count = 0
+        self.allow_duplicate_values = True
         if len(args) == 1:
             for i in args[0]:
                 self.insert(i)
@@ -214,41 +245,16 @@ class AVLTree():
                     self.root = new_node
                 node.update_height()
 
-    def sanity_check(self, *args):
-        if len(args) == 0:
-            node = self.root
+    def insert(self, key):
+        new_node = Node(key)
+        if self.root is None:
+            # If nothing in tree
+            self.root = new_node
         else:
-            node = args[0]
-        if (node is None) or (node.is_leaf() and node.parent is None):
-            # trivial - no sanity check needed, as either the tree is empty or there is only one node in the tree
-            pass
-        else:
-            if node.height != node.max_child_height() + 1:
-                raise Exception("Invalid height for node " + str(node) + ": " + str(node.height) + " instead of " + str(node.max_child_height() + 1) + "!")
-
-            bal_factor = node.weigh()
-            #Test the balance factor
-            if not (-1 <= bal_factor <= 1):
-                raise Exception("Balance factor for node " + str(node) + " is " + str(bal_factor) + "!")
-                #Make sure we have no circular references
-            if not (node.left_child != node):
-                raise Exception("Circular reference for node " + str(node) + ": node.left_child is node!")
-            if not (node.right_child != node):
-                raise Exception("Circular reference for node " + str(node) + ": node.right_child is node!")
-
-            if node.left_child:
-                if not (node.left_child.parent == node):
-                    raise Exception("Left child of node " + str(node) + " doesn't know who his father is!")
-                if not (node.left_child.key <= node.key):
-                    raise Exception("Key of left child of node " + str(node) + " is greater than key of his parent!")
-                self.sanity_check(node.left_child)
-
-            if node.right_child:
-                if not (node.right_child.parent == node):
-                    raise Exception("Right child of node " + str(node) + " doesn't know who his father is!")
-                if not (node.right_child.key >= node.key):
-                    raise Exception("Key of right child of node " + str(node) + " is less than key of his parent!")
-                self.sanity_check(node.right_child)
+            if self.find(key) is None:
+                # If key doesn't exist in tree
+                self.element_count += 1
+                self.add_as_child(self.root, new_node)
 
     def add_as_child(self, parent_node, child_node):
         node_to_rebalance = None
@@ -269,7 +275,9 @@ class AVLTree():
             else:
                 self.add_as_child(parent_node.left_child, child_node)
         else:
+            # should go on right
             if parent_node.right_child is None:
+                # can add to this node
                 parent_node.right_child = child_node
                 child_node.parent = parent_node
                 child_node.update_height()
@@ -285,18 +293,6 @@ class AVLTree():
 
         if node_to_rebalance is not None:
             self.balance(node_to_rebalance)
-
-    def insert(self, key):
-        new_node = Node(key)
-        if self.root is None:
-            # If nothing in tree
-            self.root = new_node
-        else:
-            if self.find(key) is None:
-                # If key doesn't exist in tree
-                self.element_count += 1
-                self.add_as_child(self.root, new_node)
-        #self.balance()
 
     def inorder_non_recursive(self):
         node = self.root
@@ -497,13 +493,48 @@ class AVLTree():
             start_node = self.root
         return start_node.out()
 
+    def sanity_check(self, *args):
+        if len(args) == 0:
+            node = self.root
+        else:
+            node = args[0]
+        if (node is None) or (node.is_leaf() and node.parent is None):
+            # trivial - no sanity check needed, as either the tree is empty or there is only one node in the tree
+            pass
+        else:
+            if node.height != node.max_child_height() + 1:
+                raise Exception("Invalid height for node " + str(node) + ": " + str(node.height) + " instead of " + str(node.max_child_height() + 1) + "!")
 
-def random_data_generator(max_r):
-    for i in xrange(max_r):
-        yield random.randint(0, max_r)
+            bal_factor = node.weigh()
+            #Test the balance factor
+            if not (-1 <= bal_factor <= 1):
+                raise Exception("Balance factor for node " + str(node) + " is " + str(bal_factor) + "!")
+                #Make sure we have no circular references
+            if not (node.left_child != node):
+                raise Exception("Circular reference for node " + str(node) + ": node.left_child is node!")
+            if not (node.right_child != node):
+                raise Exception("Circular reference for node " + str(node) + ": node.right_child is node!")
+
+            if node.left_child:
+                if not (node.left_child.parent == node):
+                    raise Exception("Left child of node " + str(node) + " doesn't know who his father is!")
+                if not (node.left_child.key <= node.key):
+                    raise Exception("Key of left child of node " + str(node) + " is greater than key of his parent!")
+                self.sanity_check(node.left_child)
+
+            if node.right_child:
+                if not (node.right_child.parent == node):
+                    raise Exception("Right child of node " + str(node) + " doesn't know who his father is!")
+                if not (node.right_child.key >= node.key):
+                    raise Exception("Key of right child of node " + str(node) + " is less than key of his parent!")
+                self.sanity_check(node.right_child)
 
 
 def test():
+    def random_data_generator(max_r):
+        for i in xrange(max_r):
+            yield random.randint(0, max_r)
+
     print("check empty tree creation")
     a = AVLTree()
     print("about to do sanity check 1")
