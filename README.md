@@ -5,9 +5,10 @@ Python [binary tree] module that is [self-balancing] and uses [AVL trees].
 
 What Problem This Solves
 ------------------------
-* Fast insertion
-* Fast retrieval
-* Fast deletion
+* Small space,  Ave: O(n), Max: O(n)
+* Fast search,  Ave: O(log n), Max: O(log n)
+* Fast insert,  Ave: O(log n), Max: O(log n)
+* Fast delete,  Ave: O(log n), Max: O(log n)
 * Objects with duplicate values may be added
 
 How This Solves It
