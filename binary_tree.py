@@ -194,8 +194,9 @@ class Node():
         return out_string
 
 
-class AVLTree():
+class BinaryTree():
     """ Binary Search Tree
+    Uses AVL Tree
     """
     def __init__(self, *args):
         self.root = None  # root Node
@@ -549,7 +550,7 @@ def test():
             yield random.randint(0, max_r)
 
     print("check empty tree creation")
-    a = AVLTree()
+    a = BinaryTree()
     print("about to do sanity check 1")
     a.sanity_check()
 
@@ -557,7 +558,7 @@ def test():
     seq = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
     seq_copy = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
     #random.shuffle(seq)
-    b = AVLTree(seq)
+    b = BinaryTree(seq)
     print("about to do sanity check 2")
     b.sanity_check()
 
@@ -565,7 +566,7 @@ def test():
     assert (b.as_list(3) == b.as_list(1) == seq_copy)
 
     print("check that node deletion works")
-    c = AVLTree(random_data_generator(10000))
+    c = BinaryTree(random_data_generator(10000))
     before_deletion = c.element_count
     for i in random_data_generator(1000):
         c.remove(i)
