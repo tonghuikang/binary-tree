@@ -58,6 +58,50 @@ class Node():
             right_child_text = str(self.right_child.key)
         return "K:" + str(self.key) + " H:" + str(self.height) + " P:" + parent_text + " L:" + left_child_text + " R:" + right_child_text
 
+    def next(self):
+        """ Returns the next Node (next key value larger)
+        """
+        # Find out if less than or greater than parent
+
+        # If has right child, select, then traverse left all the way down
+        if self.right_child is not None:
+            node = self.right_child
+            while node.left_child is not None:
+                node = node.left_child
+            return node
+
+        node = self
+        while node.parent is not None:
+            # If left child of parent, return parent
+            if node.parent.left_child == node:
+                return node.parent
+            # Try to find an ancestor that is a left child
+            node = node.parent
+
+        return None
+
+    def previous(self):
+        """ Returns the previous Node (next key value smaller)
+        """
+        # Find out if less than or greater than parent
+
+        # If has left child, select, then traverse right all the way down
+        if self.left_child is not None:
+            node = self.left_child
+            while node.right_child is not None:
+                node = node.right_child
+            return node
+
+        node = self
+        while node.parent is not None:
+            # If right child of parent, return parent
+            if node.parent.right_child == node:
+                return node.parent
+            # Try to find an ancestor that is a right child
+            node = node.parent
+
+        return None
+
     def rotate_right(self):
         assert(self.right_child is not None)
         to_promote = self.right_child
@@ -232,6 +276,9 @@ class BinaryTree():
 
     def __len__(self):
         return self.element_count
+
+    def __str__(self):
+        return self.out()
 
     def height(self):
         """ Return Max Height Of Tree
