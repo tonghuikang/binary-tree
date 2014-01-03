@@ -26,7 +26,10 @@ class NodeKey():
         return self > other or self == other
 
     def __str__(self):
-        return str(self.value) + " // " + str(self.name)
+        if self.name is None:
+            return str(self.value)
+        else:
+            return str(self.value) + "," + str(self.name)
 
 
 class Node():
@@ -40,20 +43,63 @@ class Node():
 
     def __str__(self):
         if self.parent is None:
-            parent_text = "None"
+            parent_text = "N"
         else:
             parent_text = str(self.parent.key)
 
         if self.left_child is None:
-            left_child_text = "None"
+            left_child_text = "N"
         else:
             left_child_text = str(self.left_child.key)
 
         if self.right_child is None:
-            right_child_text = "None"
+            right_child_text = "N"
         else:
             right_child_text = str(self.right_child.key)
-        return "K: " + str(self.key) + " H: " + str(self.height) + " P: " + parent_text + " L: " + left_child_text + " R: " + right_child_text
+        return "K:" + str(self.key) + " H:" + str(self.height) + " P:" + parent_text + " L:" + left_child_text + " R:" + right_child_text
+
+    def rotate_right(self):
+        assert(self.right_child is not None)
+        to_promote = self.right_child
+        swapper = to_promote.left_child
+
+        # swap children
+        self.right_child = swapper
+        to_promote.left_child = self
+        new_top = self._swap_parents(to_promote, swapper)
+        if swapper is not None:
+            swapper.update_height()
+        self.update_height()
+        return new_top
+
+    def rotate_left(self):
+        assert(self.left_child is not None)
+        to_promote = self.left_child
+        swapper = to_promote.right_child
+
+        # swap children
+        self.left_child = swapper
+        to_promote.right_child = self
+        new_top = self._swap_parents(to_promote, swapper)
+        if swapper is not None:
+            swapper.update_height()
+        self.update_height()
+        return new_top
+
+    def _swap_parents(self, promote, swapper):
+        """ re-assign parents, returns new top
+        """
+        promote.parent = self.parent
+        self.parent = promote
+        if swapper is not None:
+            swapper.parent = self
+
+        if promote.parent is not None:
+            if promote.parent.right_child == self:
+                promote.parent.right_child = promote
+            elif promote.parent.left_child == self:
+                promote.parent.left_child = promote
+        return promote
 
     def is_leaf(self):
         """ Return True if Leaf, False Otherwise
@@ -93,54 +139,6 @@ class Node():
         balance = left_height - right_height
         return balance
 
-    def rotate_right(self):
-        # assign variables
-        to_demote = self
-        top = to_demote.parent
-        to_promote = to_demote.right_child
-        swapper = to_promote.left_child
-
-        # swap children
-        to_promote.left_child = to_demote
-        to_demote.right_child = swapper
-
-        # re-assign parents
-        to_promote.parent = top
-        to_demote.parent = to_promote
-        if swapper is not None:
-            swapper.parent = to_demote
-
-        if top is not None:
-            if top.right_child == to_demote:
-                top.right_child = to_promote
-            elif top.left_child == to_demote:
-                top.left_child = to_promote
-        return to_promote
-
-    def rotate_left(self):
-        # assign variables
-        to_demote = self
-        top = to_demote.parent
-        to_promote = to_demote.left_child
-        swapper = to_promote.right_child
-
-        # swap children
-        to_promote.right_child = to_demote
-        to_demote.left_child = swapper
-
-        # re-assign parents
-        to_promote.parent = top
-        to_demote.parent = to_promote
-        if swapper is not None:
-            swapper.parent = to_demote
-
-        if top is not None:
-            if top.right_child == to_demote:
-                top.right_child = to_promote
-            elif top.left_child == to_demote:
-                top.left_child = to_promote
-        return to_promote
-
     def max(self):
         """ Finds the largest descendant of this Node
         """
@@ -160,13 +158,40 @@ class Node():
     def update_height(self):
         """ Updates Height of This Node and All Ancestor Nodes, As Necessary
         """
+        # TODO: should stop iterating when reaches correct height
         node = self
-        # changed = True
         while node is not None:
-            # old_height = node.height
             node.height = node.max_child_height() + 1
-            # changed = node.height != old_height
             node = node.parent
+
+    def root(self):
+        node = self
+        while node.parent is not None:
+            node = node.parent
+        return node
+
+    def balance(self, tree):
+        """ Balances node, sets new tree root if appropriate
+        Note: If balancing does occur, this node will move to a lower position on the tree
+        """
+        while self.weigh() < -1 or self.weigh() > 1:
+            if self.weigh() < 0:
+                # right side heavy
+                if self.right_child.weigh() > 0:
+                    # right-side left-side heavy
+                    self.right_child.rotate_left()
+                # right-side right-side heavy
+                new_top = self.rotate_right()
+            else:
+                # left side heavy
+                if self.left_child.weigh() < 0:
+                    # left-side right-side heavy
+                    self.left_child.rotate_right()
+                # left-side left-side heavy
+                new_top = self.rotate_left()
+
+            if new_top.parent is None:
+                tree.root = new_top
 
     def out(self):
         """ Return String Representing Tree From Current Node Down
@@ -201,7 +226,6 @@ class BinaryTree():
     def __init__(self, *args):
         self.root = None  # root Node
         self.element_count = 0
-        self.allow_duplicate_values = True
         if len(args) == 1:
             for i in args[0]:
                 self.insert(i)
@@ -217,36 +241,11 @@ class BinaryTree():
         else:
             return 0
 
-    def balance(self, node=None):
+    def balance(self):
         """ Perform balancing Operation
         """
-        if node is None:
-            node = self.root
-        while node.weigh() < -1 or node.weigh() > 1:
-            if node.weigh() < 0:
-                # right side heavy
-                if node.right_child.weigh() > 0:
-                    # right-side left-side heavy
-                    old_right_child = node.right_child
-                    node.right_child.rotate_left()
-                    old_right_child.update_height()
-                # right-side right-side heavy
-                new_node = node.rotate_right()
-                if new_node.parent is None:
-                    self.root = new_node
-                node.update_height()
-            else:
-                # left side heavy
-                if node.left_child.weigh() < 0:
-                    # left-side right-side heavy
-                    old_left_child = node.left_child
-                    node.left_child.rotate_right()
-                    old_left_child.update_height()
-                # left-side left-side heavy
-                new_node = node.rotate_left()
-                if new_node.parent is None:
-                    self.root = new_node
-                node.update_height()
+        if self.root is not None:
+            self.root.balance(self)
 
     def insert(self, value, name=None):
         if self.root is None:
@@ -254,12 +253,11 @@ class BinaryTree():
             self.root = Node(value, name)
         else:
             if self.find(value, name) is None:
-                # If key doesn't exist in tree
+                # If key/name pair doesn't exist in tree
                 self.element_count += 1
                 self.add_as_child(self.root, Node(value, name))
 
     def add_as_child(self, parent_node, child_node):
-        node_to_rebalance = None
         if child_node.key < parent_node.key:
             # should go on left
             if parent_node.left_child is None:
@@ -267,13 +265,6 @@ class BinaryTree():
                 parent_node.left_child = child_node
                 child_node.parent = parent_node
                 child_node.update_height()
-
-                node = parent_node
-                while node:
-                    if node.weigh() not in [-1, 0, 1]:
-                        node_to_rebalance = node
-                        break
-                    node = node.parent
             else:
                 self.add_as_child(parent_node.left_child, child_node)
         else:
@@ -283,18 +274,11 @@ class BinaryTree():
                 parent_node.right_child = child_node
                 child_node.parent = parent_node
                 child_node.update_height()
-
-                node = parent_node
-                while node:
-                    if node.weigh() not in [-1, 0, 1]:
-                        node_to_rebalance = node
-                        break
-                    node = node.parent
             else:
                 self.add_as_child(parent_node.right_child, child_node)
 
-        if node_to_rebalance is not None:
-            self.balance(node_to_rebalance)
+        if parent_node.weigh() not in [-1, 0, 1]:
+            parent_node.balance(self)
 
     def inorder_non_recursive(self):
         node = self.root
@@ -387,22 +371,15 @@ class BinaryTree():
         if not node is None:
             self.element_count -= 1
 
-            #     There are three cases:
-            # 
-            #     1) The node is a leaf.  Remove it and return.
-            # 
-            #     2) The node is a branch (has only 1 child). Make the pointer to this node 
-            #        point to the child of this node.
-            # 
-            #     3) The node has two children. Swap items with the successor
-            #        of the node (the smallest item in its right subtree) and
-            #        delete the successor from the right subtree of the node.
-
             if node.is_leaf():
+                # The node is a leaf.  Remove it and return.
                 self.remove_leaf(node)
-            elif (bool(node.left_child)) ^ (bool(node.right_child)):
+            elif (node.left_child is not None and node.right_child is None) or (node.left_child is None and node.right_child is not None):
+                # The node has only 1 child. Make the pointer to this node point to the child of this node.
                 self.remove_branch(node)
             else:
+                # The node has 2 children. Swap items with the successor (the smallest item in its right subtree) and
+                # delete the successor from the right subtree of the node.
                 assert node.left_child and node.right_child
                 self.swap_with_successor_and_remove(node)
 
@@ -417,12 +394,12 @@ class BinaryTree():
             parent.update_height()
         else:
             self.root = None
-        del node
+
         # rebalance
         node = parent
         while node:
             if not node.weigh() in [-1, 0, 1]:
-                self.balance(node)
+                node.balance(self)
             node = node.parent
 
     def remove_branch(self, node):
@@ -433,18 +410,19 @@ class BinaryTree():
             else:
                 assert (parent.right_child == node)
                 parent.right_child = node.right_child or node.left_child
+
             if node.left_child:
                 node.left_child.parent = parent
             else:
                 assert node.right_child
                 node.right_child.parent = parent
             parent.update_height()
-        del node
+
         # rebalance
         node = parent
         while node:
             if not node.weigh() in [-1, 0, 1]:
-                self.balance(node)
+                node.balance(self)
             node = node.parent
 
     def swap_with_successor_and_remove(self, node):
@@ -505,7 +483,11 @@ class BinaryTree():
     def out(self, start_node=None):
         if start_node is None:
             start_node = self.root
-        return start_node.out()
+
+        if start_node is None:
+            return None
+        else:
+            return start_node.out()
 
     def sanity_check(self, *args):
         if len(args) == 0:
@@ -545,9 +527,9 @@ class BinaryTree():
 
 
 def test():
-    def random_data_generator(max_r):
-        for i in xrange(max_r):
-            yield random.randint(0, max_r)
+    def random_data_generator(count, max_val):
+        for n in xrange(count):
+            yield random.randint(0, max_val)
 
     print("check empty tree creation")
     a = BinaryTree()
@@ -556,7 +538,7 @@ def test():
 
     print("check not empty tree creation")
     seq = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
-    seq_copy = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    seq_copy = list(seq)
     #random.shuffle(seq)
     b = BinaryTree(seq)
     print("about to do sanity check 2")
@@ -565,10 +547,14 @@ def test():
     print("check that inorder traversal on an AVL tree (and on a binary search tree in the whole) will return values from the underlying set in order")
     assert (b.as_list(3) == b.as_list(1) == seq_copy)
 
+    random.shuffle(seq)
+    for x in seq:
+        b.remove(x)
+
     print("check that node deletion works")
-    c = BinaryTree(random_data_generator(10000))
+    c = BinaryTree(random_data_generator(20000, 25000))
     before_deletion = c.element_count
-    for i in random_data_generator(1000):
+    for i in random_data_generator(5000, 25000):
         c.remove(i)
     after_deletion = c.element_count
     c.sanity_check()
