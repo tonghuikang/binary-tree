@@ -1,7 +1,7 @@
 Self-Balancing Binary Tree
 =============
 
-Python [binary tree] module that is [self-balancing] and uses [AVL trees].
+Python [binary tree] module that is [self-balancing].
 
 What Problem This Solves
 ------------------------
@@ -13,6 +13,7 @@ What Problem This Solves
 
 How This Solves It
 ------------------
+Uses [AVL trees].
 
 Usage
 -----
