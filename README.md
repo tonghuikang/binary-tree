@@ -19,7 +19,7 @@ Usage
 -----
 New tree
 
-`tree = AVLTree()`
+`tree = BinaryTree()`
 
 Insert Entity into the tree
 
