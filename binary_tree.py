@@ -42,21 +42,7 @@ class Node():
         self.height = 0
 
     def __str__(self):
-        if self.parent is None:
-            parent_text = "N"
-        else:
-            parent_text = str(self.parent.key)
-
-        if self.left_child is None:
-            left_child_text = "N"
-        else:
-            left_child_text = str(self.left_child.key)
-
-        if self.right_child is None:
-            right_child_text = "N"
-        else:
-            right_child_text = str(self.right_child.key)
-        return "K:" + str(self.key) + " H:" + str(self.height) + " P:" + parent_text + " L:" + left_child_text + " R:" + right_child_text
+        return str(self.key)
 
     def next(self):
         """ Returns the next Node (next key value larger)
