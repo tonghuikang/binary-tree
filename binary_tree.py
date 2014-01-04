@@ -47,8 +47,6 @@ class Node():
     def next(self):
         """ Returns the next Node (next key value larger)
         """
-        # Find out if less than or greater than parent
-
         # If has right child, select, then traverse left all the way down
         if self.right_child is not None:
             node = self.right_child
@@ -57,20 +55,18 @@ class Node():
             return node
 
         node = self
+        # Try to find an ancestor that is a left child, return parent of that
         while node.parent is not None:
-            # If left child of parent, return parent
             if node.parent.left_child == node:
                 return node.parent
-            # Try to find an ancestor that is a left child
             node = node.parent
 
+        # Nothing greater than this
         return None
 
     def previous(self):
         """ Returns the previous Node (next key value smaller)
         """
-        # Find out if less than or greater than parent
-
         # If has left child, select, then traverse right all the way down
         if self.left_child is not None:
             node = self.left_child
@@ -79,57 +75,14 @@ class Node():
             return node
 
         node = self
+        # Try to find an ancestor that is a right child, return parent of that
         while node.parent is not None:
-            # If right child of parent, return parent
             if node.parent.right_child == node:
                 return node.parent
-            # Try to find an ancestor that is a right child
             node = node.parent
 
+        #  Nothing smaller than this
         return None
-
-    def rotate_right(self):
-        assert(self.right_child is not None)
-        to_promote = self.right_child
-        swapper = to_promote.left_child
-
-        # swap children
-        self.right_child = swapper
-        to_promote.left_child = self
-        new_top = self._swap_parents(to_promote, swapper)
-        if swapper is not None:
-            swapper.update_height()
-        self.update_height()
-        return new_top
-
-    def rotate_left(self):
-        assert(self.left_child is not None)
-        to_promote = self.left_child
-        swapper = to_promote.right_child
-
-        # swap children
-        self.left_child = swapper
-        to_promote.right_child = self
-        new_top = self._swap_parents(to_promote, swapper)
-        if swapper is not None:
-            swapper.update_height()
-        self.update_height()
-        return new_top
-
-    def _swap_parents(self, promote, swapper):
-        """ re-assign parents, returns new top
-        """
-        promote.parent = self.parent
-        self.parent = promote
-        if swapper is not None:
-            swapper.parent = self
-
-        if promote.parent is not None:
-            if promote.parent.right_child == self:
-                promote.parent.right_child = promote
-            elif promote.parent.left_child == self:
-                promote.parent.left_child = promote
-        return promote
 
     def is_leaf(self):
         """ Return True if Leaf, False Otherwise
@@ -168,22 +121,6 @@ class Node():
 
         balance = left_height - right_height
         return balance
-
-    def max(self):
-        """ Finds the largest descendant of this Node
-        """
-        node = self
-        while node.right_child:
-            node = node.right_child
-        return node
-
-    def min(self):
-        """ Finds the smallest descendant of this Node
-        """
-        node = self
-        while node.left_child:
-            node = node.left_child
-        return node
 
     def update_height(self):
         """ Updates Height of This Node and All Ancestor Nodes, As Necessary
@@ -247,6 +184,49 @@ class Node():
                 level = level_next
                 out_string += level_string
         return out_string
+
+    def rotate_right(self):
+        assert(self.right_child is not None)
+        to_promote = self.right_child
+        swapper = to_promote.left_child
+
+        # swap children
+        self.right_child = swapper
+        to_promote.left_child = self
+        new_top = self._swap_parents(to_promote, swapper)
+        if swapper is not None:
+            swapper.update_height()
+        self.update_height()
+        return new_top
+
+    def rotate_left(self):
+        assert(self.left_child is not None)
+        to_promote = self.left_child
+        swapper = to_promote.right_child
+
+        # swap children
+        self.left_child = swapper
+        to_promote.right_child = self
+        new_top = self._swap_parents(to_promote, swapper)
+        if swapper is not None:
+            swapper.update_height()
+        self.update_height()
+        return new_top
+
+    def _swap_parents(self, promote, swapper):
+        """ re-assign parents, returns new top
+        """
+        promote.parent = self.parent
+        self.parent = promote
+        if swapper is not None:
+            swapper.parent = self
+
+        if promote.parent is not None:
+            if promote.parent.right_child == self:
+                promote.parent.right_child = promote
+            elif promote.parent.left_child == self:
+                promote.parent.left_child = promote
+        return promote
 
 
 class BinaryTree():
@@ -459,7 +439,9 @@ class BinaryTree():
             node = node.parent
 
     def swap_with_successor_and_remove(self, node):
-        successor = node.right_child.min()
+        successor = node.right_child
+        while successor.left_child:
+            successor = successor.left_child
         self.swap_nodes(node, successor)
         assert (node.left_child is None)
         if node.height == 0:
