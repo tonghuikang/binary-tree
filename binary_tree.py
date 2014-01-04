@@ -504,11 +504,15 @@ class BinaryTree():
         else:
             return start_node.out()
 
-    def sanity_check(self, *args):
-        if len(args) == 0:
-            node = self.root
-        else:
-            node = args[0]
+
+def test():
+    def random_data_generator(count, max_val):
+        for n in xrange(count):
+            yield random.randint(0, max_val)
+
+    def sanity_check(tree=None, node=None):
+        if node is None and tree is not None:
+            node = tree.root
         if (node is None) or (node.is_leaf() and node.parent is None):
             # trivial - no sanity check needed, as either the tree is empty or there is only one node in the tree
             pass
@@ -531,25 +535,19 @@ class BinaryTree():
                     raise Exception("Left child of node " + str(node) + " doesn't know who his father is!")
                 if not (node.left_child.key <= node.key):
                     raise Exception("Key of left child of node " + str(node) + " is greater than key of his parent!")
-                self.sanity_check(node.left_child)
+                sanity_check(node=node.left_child)
 
             if node.right_child:
                 if not (node.right_child.parent == node):
                     raise Exception("Right child of node " + str(node) + " doesn't know who his father is!")
                 if not (node.right_child.key >= node.key):
                     raise Exception("Key of right child of node " + str(node) + " is less than key of his parent!")
-                self.sanity_check(node.right_child)
-
-
-def test():
-    def random_data_generator(count, max_val):
-        for n in xrange(count):
-            yield random.randint(0, max_val)
+                sanity_check(node=node.right_child)
 
     print("check empty tree creation")
     a = BinaryTree()
     print("about to do sanity check 1")
-    a.sanity_check()
+    sanity_check(tree=a)
 
     print("check not empty tree creation")
     seq = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
@@ -557,7 +555,7 @@ def test():
     #random.shuffle(seq)
     b = BinaryTree(seq)
     print("about to do sanity check 2")
-    b.sanity_check()
+    sanity_check(tree=b)
 
     print("check that inorder traversal on an AVL tree (and on a binary search tree in the whole) will return values from the underlying set in order")
     assert (b.as_list(3) == b.as_list(1) == seq_copy)
@@ -572,7 +570,7 @@ def test():
     for i in random_data_generator(5000, 25000):
         c.remove(i)
     after_deletion = c.element_count
-    c.sanity_check()
+    sanity_check(tree=c)
     assert (before_deletion >= after_deletion)
 
     print("check that an AVL tree's height is strictly less than 1.44*log2(N+2)-1 (there N is number of elements)")
