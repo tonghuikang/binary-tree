@@ -5,7 +5,7 @@ Python [binary tree] module that is [self-balancing].
 
 What Problem This Solves
 ------------------------
-First, make sure that the Python "bisect" library will not suit your needs. The "bisect" library may suit most needs. Otherwise:
+Depending on your use case, the Python "bisect" library may suit your needs and be prefered. So, check it out first. Otherwise:
 
 * Small space,  Ave: O(n), Max: O(n)
 * Fast search,  Ave: O(log n), Max: O(log n)
