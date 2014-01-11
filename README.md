@@ -3,9 +3,10 @@ Self-Balancing Binary Tree
 
 Python [binary tree] module that is [self-balancing].
 
+Note: There are probably better libraries that do what you want. Python "bisect" library performs binary search on lists, and the "blist" package is awesome and includes "sortedlist" and "sorteddict" among others.
+
 What Problem This Solves
 ------------------------
-Depending on your use case, the Python "bisect" library may suit your needs and be prefered. So, check it out first. Otherwise:
 
 * Small space,  Ave: O(n), Max: O(n)
 * Fast search,  Ave: O(log n), Max: O(log n)
