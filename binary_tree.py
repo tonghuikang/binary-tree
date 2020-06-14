@@ -1,3 +1,4 @@
+# python 2 only
 import random
 import math
 
@@ -175,7 +176,7 @@ class Node():
             level = [start_node]
             while len([i for i in level if (not i is None)]) > 0:
                 level_string = initial_spaces_string
-                for i in xrange(len(level)):
+                for i in range(len(level)):
                     j = (i + 1) * spaces_count / (len(level) + 1)
                     level_string = level_string[:j] + (str(level[i]) if level[i] else space_symbol) + level_string[j + 1:]
                 level_next = []
@@ -312,6 +313,48 @@ class BinaryTree():
                     node = node.parent
                 node = node.parent
         return retlst
+
+    def get_min(self):
+        node = self.root
+        if not node:
+            return None
+        while node.left_child:
+            node = node.left_child
+        while node:
+            if node.key.name is not None:
+                return ([node.key.value, node.key.name])
+            else:
+                return node.key.value
+            if node.right_child:
+                node = node.right_child
+                while node.left_child:
+                    node = node.left_child
+            else:
+                while node.parent and (node == node.parent.right_child):
+                    node = node.parent
+                node = node.parent
+        return None
+
+    def get_max(self):
+        node = self.root
+        if not node:
+            return None
+        while node.right_child:
+            node = node.right_child
+        while node:
+            if node.key.name is not None:
+                return ([node.key.value, node.key.name])
+            else:
+                return node.key.value
+            if node.left_child:
+                node = node.left_child
+                while node.right_child:
+                    node = node.right_child
+            else:
+                while node.parent and (node == node.parent.left_child):
+                    node = node.parent
+                node = node.parent
+        return None
 
     def preorder(self, node, retlst=None):
         if retlst is None:
@@ -552,13 +595,15 @@ def test():
     print("check not empty tree creation")
     seq = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
     seq_copy = list(seq)
-    #random.shuffle(seq)
+    # random.shuffle(seq)
     b = BinaryTree(seq)
     print("about to do sanity check 2")
     sanity_check(tree=b)
 
     print("check that inorder traversal on an AVL tree (and on a binary search tree in the whole) will return values from the underlying set in order")
     assert (b.as_list(3) == b.as_list(1) == seq_copy)
+    assert b.get_min() == min(seq)
+    assert b.get_max() == max(seq)
 
     random.shuffle(seq)
     for x in seq:
